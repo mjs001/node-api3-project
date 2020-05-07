@@ -1,39 +1,25 @@
 // code away!
 
 const express = require("express");
-const Users = require("./users/userDb.js");
-const Posts = require("./posts/postDb.js");
+
+const postRouter = require("./posts/postRouter.js");
+const userRouter = require("./users/userRouter.js");
 const server = express();
 server.use(express.json());
 server.use(logger);
-server.use(validateUserId);
-server.use(validateUser);
+
+server.use("/api/posts/", postRouter);
+server.use("/api/user/", userRouter);
 
 function logger(req, res, next) {
-  console.log(
-    `[${new Date().toISOString()}] ${req.method} to ${req.url} from ${req.get(
-      "Origin"
-    )}`
-  );
+  console.log(`[${new Date().toISOString()}] ${req.method} to ${req.url}`);
   next();
 }
 
-function validateUserId(req, res, next) {
-  const { id } = req.params;
-  const user = Users.findById(id);
-  if (user) {
-    req.user = user;
-    next();
-  } else {
-    res.status(400).json({ message: "invalid user id" });
-  }
-}
+server.get("/", (req, res) => {
+  res.json({ query: req.query, params: req.params, headers: req.headers });
+});
 
-function validateUser(req, res, next) {
-  const { body } = res.body;
-  if (body === null || body === "") {
-    res.status(400).json({ message: "missing user data" });
-  } else if (body.name === null || body.name === "") {
-    res.status(400).json({ message: "missing required name field" });
-  } else next();
-}
+server.listen(4001, () => {
+  console.log("\n server is running on port 4001 \n");
+});
